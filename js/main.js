@@ -31,6 +31,15 @@ import { Fox } from "./classes/Fox.js";
 import { Bird } from "./classes/Bird.js";
 import { Food } from "./classes/Food.js";
 
+// --- Shader Imports (NEW) ---
+// It's common to import shaders as raw text.
+// If your bundler/setup doesn't support this, you might need to fetch them or embed as strings.
+// For a simple setup without a bundler, you might need to fetch these files.
+// Assuming a setup where you can import text files (e.g., using a plugin or specific loader)
+// For now, let's assume these will be fetched.
+let waterVertexShader = "";
+let waterFragmentShader = "";
+
 // --- Simulation State ---
 export let simulationRunning = false;
 export let time = 0;
@@ -68,11 +77,29 @@ export function resetSimulation() {
   waterBodyMeshes = [];
   waterBodiesData = []; // Clear the data array as well
 
-  setup();
+  // Fetch shaders before setting up water (NEW)
+  Promise.all([
+    fetch("../shaders/waterVertex.glsl").then((response) => response.text()),
+    fetch("../shaders/waterFragment.glsl").then((response) => response.text()),
+  ])
+    .then(([vertexShader, fragmentShader]) => {
+      waterVertexShader = vertexShader;
+      waterFragmentShader = fragmentShader;
+      setupWaterAndCreatures(); // Proceed with setup after shaders are loaded
+    })
+    .catch((error) => {
+      console.error("Error loading shaders:", error);
+      // Fallback or error handling if shaders don't load
+      setupWaterAndCreatures(); // Proceed with default materials if shaders fail
+    });
+
+  // Original setup() content moved to setupWaterAndCreatures()
+  // setup(); // This call is now inside the Promise.then()
 }
 
 // --- Core Simulation Functions ---
-function setup() {
+// Renamed setup to setupWaterAndCreatures and modified to use shaders
+function setupWaterAndCreatures() {
   // Clear previous data just in case, though resetSimulation should handle it
   waterBodyMeshes.forEach((mesh) => {
     scene.remove(mesh);
@@ -203,12 +230,32 @@ function setup() {
         }
       }
 
-      const waterMaterial = new THREE.MeshStandardMaterial({
-        color: config.water.color,
-        transparent: true,
-        opacity: 0.75,
-        side: THREE.DoubleSide,
-      });
+      // --- Use ShaderMaterial for Water (NEW) ---
+      let waterMaterial;
+      if (waterVertexShader && waterFragmentShader) {
+        waterMaterial = new THREE.ShaderMaterial({
+          uniforms: {
+            time: { value: 0.0 },
+            // uColor: { value: new THREE.Color(config.water.color) } // Example if you want to pass color
+          },
+          vertexShader: waterVertexShader,
+          fragmentShader: waterFragmentShader,
+          transparent: true,
+          opacity: 0.75, // This might need to be handled by the shader's alpha output
+          side: THREE.DoubleSide,
+        });
+      } else {
+        // Fallback to MeshStandardMaterial if shaders didn't load
+        console.warn("Shaders not loaded, using default water material.");
+        waterMaterial = new THREE.MeshStandardMaterial({
+          color: config.water.color,
+          transparent: true,
+          opacity: 0.75,
+          side: THREE.DoubleSide,
+        });
+      }
+      // --- End ShaderMaterial ---
+
       const waterMesh = new THREE.Mesh(waterGeometry, waterMaterial);
       waterMesh.rotation.x = -Math.PI / 2;
       waterMesh.position.set(waterBody.x, 1, waterBody.z); // y slightly above ground - increased to 0.2
@@ -305,8 +352,19 @@ function animate() {
   requestAnimationFrame(animate);
   if (controls) controls.update();
 
+  // --- Update Shader Time Uniform (NEW) ---
+  const delta = clock.getDelta(); // Get delta once per frame
+
+  // Update time uniform for all water meshes
+  waterBodyMeshes.forEach((waterMesh) => {
+    if (waterMesh.material instanceof THREE.ShaderMaterial) {
+      waterMesh.material.uniforms.time.value += delta * 0.5; // Increased speed multiplier
+    }
+  });
+  // --- End Shader Time Update ---
+
   if (simulationRunning) {
-    elapsedSinceTick += clock.getDelta() * 1000;
+    elapsedSinceTick += delta * 1000; // Use the delta obtained earlier
 
     if (elapsedSinceTick > config.simulation.tickDuration) {
       const ticksToRun = Math.floor(
@@ -390,6 +448,7 @@ document.addEventListener("DOMContentLoaded", () => {
     () => simulationRunning,
     () => creatures
   );
-  setup();
+  // setup(); // Original call to setup, now handled by resetSimulation's shader loading
+  resetSimulation(); // Call resetSimulation to trigger shader loading and initial setup
   animate();
 });
