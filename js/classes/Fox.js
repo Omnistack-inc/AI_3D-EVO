@@ -46,8 +46,13 @@ export class Fox extends Creature {
 
     this.move();
     let huntedCreatureId = null;
-    if (closestPrey && distance2D(this, closestPrey) < this.size * 2) {
+    if (
+      closestPrey &&
+      distance2D(this, closestPrey) < this.size * 2 &&
+      !closestPrey.isHunted
+    ) {
       this.energy += this.config.preyEnergyBonus + closestPrey.energy * 0.5;
+      closestPrey.isHunted = true; // Mark prey as hunted
       huntedCreatureId = closestPrey.id; // Store ID of hunted creature
       // closestPrey.dispose(); // Disposal will be handled in main.js
     }

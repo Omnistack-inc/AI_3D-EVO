@@ -12,6 +12,7 @@ export class Creature {
     this.y = y;
     this.z = z;
     this.energy = energy;
+    this.isHunted = false; // Flag to indicate if the creature has been hunted in the current tick
     this.vx = random(-1, 1);
     this.vy = 0;
     this.vz = random(-1, 1);
