@@ -345,6 +345,12 @@ export function initUI() {
   toggleVisionConesInput = document.getElementById("toggle-vision-cones");
   waterBodiesCountInput = document.getElementById("water-bodies-count");
 
+  // Set default state for toggleVisionConesInput if it exists
+  if (toggleVisionConesInput) {
+    toggleVisionConesInput.checked = false; // Ensure it starts unchecked
+  }
+
+  // Value display elements
   tickDurationValueEl = document.getElementById("tick-duration-value");
   foodRegenValueEl = document.getElementById("food-regen-value");
   mutationRateValueEl = document.getElementById("mutation-rate-value");
