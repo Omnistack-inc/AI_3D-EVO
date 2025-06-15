@@ -72,8 +72,8 @@ export function init3D() {
   groundPlane.rotation.x = -Math.PI / 2;
   scene.add(groundPlane);
 
-  const grid = new THREE.GridHelper(config.world.width, 20, 0x4a5568, 0x4a5568);
-  scene.add(grid);
+  // const grid = new THREE.GridHelper(config.world.width, 20, 0x4a5568, 0x4a5568);
+  // scene.add(grid);
 
   // Water body creation is now handled in main.js's setup() for randomization per simulation run
 }
