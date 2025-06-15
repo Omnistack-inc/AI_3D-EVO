@@ -22,8 +22,21 @@ export function init3D() {
   }
 
   scene = new THREE.Scene();
-  // Changed background to a sky blue color
-  scene.background = new THREE.Color(0x87ceeb);
+
+  // --- Skybox Setup ---
+  const loader = new THREE.CubeTextureLoader();
+  loader.setPath("textures/skybox/"); // Path to your skybox images
+
+  const textureCube = loader.load([
+    "px.jpg", // Right
+    "nx.jpg", // Left
+    "py.jpg", // Top
+    "ny.jpg", // Bottom
+    "pz.jpg", // Front
+    "nz.jpg", // Back
+  ]);
+  scene.background = textureCube;
+  // --- End Skybox Setup ---
 
   camera = new THREE.PerspectiveCamera(
     75,
