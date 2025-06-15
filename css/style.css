@@ -6,10 +6,28 @@ body {
 #simulation-container {
     width: 100%;
     height: 100%;
+    position: absolute; /* Ensure it covers the full area */
+    top: 0;
+    left: 0;
+    z-index: 0; /* Behind panels */
 }
 canvas {
     display: block; /* Removes any default spacing below the canvas element */
 }
+
+#stats-panel, #parameters-panel {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    z-index: 10; /* Above simulation */
+    pointer-events: none; /* Allow clicks to pass through transparent areas */
+}
+
+#stats-panel > div,
+#parameters-panel > div {
+    pointer-events: auto; /* Enable clicks on panel content */
+}
+
 .control-panel {
     /* background-color: #2d3748; */ /* Tailwind bg-gray-800 - Commented out for transparency */
     border-radius: 0.5rem;
