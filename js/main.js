@@ -109,7 +109,7 @@ function setup() {
         });
       const waterMesh = new THREE.Mesh(waterGeometry, waterMaterial);
       waterMesh.rotation.x = -Math.PI / 2;
-      waterMesh.position.set(waterX, 0.1, waterZ); // y slightly above ground
+      waterMesh.position.set(waterX, 1, waterZ); // y slightly above ground - increased to 0.2
       scene.add(waterMesh);
       waterBodyMeshes.push(waterMesh);
     }
