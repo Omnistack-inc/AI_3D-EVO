@@ -112,10 +112,37 @@ export function createBirdModel(color) {
 
 export function createVegetationModel() {
   const vegetation = new THREE.Object3D();
-  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
-  const leavesMat = new THREE.MeshStandardMaterial({ color: 0x228b22 });
+  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x8b4513 }); // SaddleBrown
 
-  if (Math.random() > 0.4) {
+  // Define a broader palette for leaves
+  const leafColors = [
+    0x228b22, // ForestGreen
+    0x556b2f, // DarkOliveGreen
+    0x6b8e23, // OliveDrab
+    0x8fbc8f, // DarkSeaGreen
+    0x2e8b57, // SeaGreen
+  ];
+  const pineLeafColors = [
+    0x006400, // DarkGreen
+    0x004d00, // Slightly darker green
+    0x007a00, // A bit lighter dark green
+  ];
+
+  // Randomly select a leaf color
+  const randomLeafColor =
+    leafColors[Math.floor(Math.random() * leafColors.length)];
+  const randomPineLeafColor =
+    pineLeafColors[Math.floor(Math.random() * pineLeafColors.length)];
+
+  const leavesMat = new THREE.MeshStandardMaterial({ color: randomLeafColor });
+  const pineLeavesMat = new THREE.MeshStandardMaterial({
+    color: randomPineLeafColor,
+  });
+
+  const type = Math.random();
+
+  if (type > 0.6) {
+    // Deciduous Tree (original)
     const trunkHeight = random(12, 18);
     const trunkGeo = new THREE.CylinderGeometry(
       random(1.5, 2),
@@ -127,13 +154,34 @@ export function createVegetationModel() {
     trunk.position.y = trunkHeight / 2;
     vegetation.add(trunk);
     const leavesGeo = new THREE.IcosahedronGeometry(random(8, 12), 0);
-    const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+    const leaves = new THREE.Mesh(leavesGeo, leavesMat); // Use randomized leavesMat
     leaves.position.y = trunkHeight + 3;
     vegetation.add(leaves);
+  } else if (type > 0.2) {
+    // Pine Tree (new variation)
+    const trunkHeight = random(20, 30); // Taller
+    const trunkRadius = random(1, 1.5); // Thinner
+    const trunkGeo = new THREE.CylinderGeometry(
+      trunkRadius,
+      trunkRadius * 1.2, // Slightly wider at base
+      trunkHeight,
+      8
+    );
+    const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+    trunk.position.y = trunkHeight / 2;
+    vegetation.add(trunk);
+
+    const canopyHeight = random(15, 20);
+    const canopyRadius = random(5, 8);
+    const leavesGeo = new THREE.ConeGeometry(canopyRadius, canopyHeight, 8);
+    const leaves = new THREE.Mesh(leavesGeo, pineLeavesMat); // Use randomized pineLeavesMat
+    leaves.position.y = trunkHeight + canopyHeight / 2 - 2; // Adjust position to sit on trunk
+    vegetation.add(leaves);
   } else {
+    // Bush (original)
     const bushRadius = random(6, 9);
     const leavesGeo = new THREE.IcosahedronGeometry(bushRadius, 0);
-    const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+    const leaves = new THREE.Mesh(leavesGeo, leavesMat); // Use randomized leavesMat for bushes too
     leaves.position.y = bushRadius / 2;
     vegetation.add(leaves);
   }
