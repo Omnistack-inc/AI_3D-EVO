@@ -1,55 +1,37 @@
 import { config } from "./config.js";
-// Removed imports from main.js: creatures, food, time, simulationRunning, startSimulation, stopSimulation, resetSimulation
-import { scene, camera, renderer, container } from "./sceneSetup.js"; // scene, camera, renderer, container are needed for resize
+// scene, camera, renderer, container are imported for the resize handler
+import { scene, camera, renderer, container } from "./sceneSetup.js";
 
-// UI Elements
-const timeElapsedEl = document.getElementById("time-elapsed");
-const totalCreaturesEl = document.getElementById("total-creatures");
-const foodCountEl = document.getElementById("food-count");
-const rabbitCountEl = document.getElementById("rabbit-count");
-const rabbitSpeedEl = document.getElementById("rabbit-speed");
-const rabbitSenseEl = document.getElementById("rabbit-sense");
-const sheepCountEl = document.getElementById("sheep-count");
-const sheepSpeedEl = document.getElementById("sheep-speed");
-const sheepSenseEl = document.getElementById("sheep-sense");
-const foxCountEl = document.getElementById("fox-count");
-const foxSpeedEl = document.getElementById("fox-speed");
-const foxSenseEl = document.getElementById("fox-sense");
-const birdCountEl = document.getElementById("bird-count");
-const birdSpeedEl = document.getElementById("bird-speed");
-const birdSenseEl = document.getElementById("bird-sense");
+// UI Elements - Declare variables here, assign in initUI
+let timeElapsedEl, totalCreaturesEl, foodCountEl;
+let rabbitCountEl, rabbitSpeedEl, rabbitSenseEl;
+let sheepCountEl, sheepSpeedEl, sheepSenseEl;
+let foxCountEl, foxSpeedEl, foxSenseEl;
+let birdCountEl, birdSpeedEl, birdSenseEl;
 
-const tickDurationInput = document.getElementById("tick-duration");
-const foodRegenRateInput = document.getElementById("food-regen-rate");
-const mutationRateInput = document.getElementById("mutation-rate");
-const rabbitStartCountInput = document.getElementById("rabbit-start-count");
-const sheepStartCountInput = document.getElementById("sheep-start-count");
-const foxStartCountInput = document.getElementById("fox-start-count");
-const birdStartCountInput = document.getElementById("bird-start-count");
-const toggleVisionConesInput = document.getElementById("toggle-vision-cones");
-const waterBodiesCountInput = document.getElementById("water-bodies-count"); // New UI element
+let tickDurationInput, foodRegenRateInput, mutationRateInput;
+let rabbitStartCountInput,
+  sheepStartCountInput,
+  foxStartCountInput,
+  birdStartCountInput;
+let toggleVisionConesInput, waterBodiesCountInput;
 
-const tickDurationValueEl = document.getElementById("tick-duration-value");
-const foodRegenValueEl = document.getElementById("food-regen-value");
-const mutationRateValueEl = document.getElementById("mutation-rate-value");
-const rabbitStartCountValueEl = document.getElementById(
-  "rabbit-start-count-value"
-);
-const sheepStartCountValueEl = document.getElementById(
-  "sheep-start-count-value"
-);
-const foxStartCountValueEl = document.getElementById("fox-start-count-value");
-const birdStartCountValueEl = document.getElementById("bird-start-count-value");
-const waterBodiesCountValueEl = document.getElementById(
-  "water-bodies-count-value"
-); // New UI element
+let tickDurationValueEl, foodRegenValueEl, mutationRateValueEl;
+let rabbitStartCountValueEl,
+  sheepStartCountValueEl,
+  foxStartCountValueEl,
+  birdStartCountValueEl;
+let waterBodiesCountValueEl;
 
-const startBtn = document.getElementById("start-btn");
-const stopBtn = document.getElementById("stop-btn");
-const resetBtn = document.getElementById("reset-btn");
+let startBtn, stopBtn, resetBtn;
 
 export function updateStats(time, creatures, food) {
-  // Added parameters
+  // Ensure elements are initialized before trying to update them
+  if (!timeElapsedEl) {
+    // console.warn("updateStats called before UI elements are initialized.");
+    return;
+  }
+
   let rabbitCount = 0,
     sheepCount = 0,
     foxCount = 0,
@@ -123,7 +105,12 @@ export function setupEventListeners(
   getSimRunningState,
   getCreaturesArray
 ) {
-  // Added parameters
+  // Ensure buttons are initialized before adding listeners
+  if (!startBtn || !stopBtn || !resetBtn) {
+    // console.warn("setupEventListeners called before UI buttons are initialized.");
+    return;
+  }
+
   startBtn.addEventListener("click", () => {
     if (!getSimRunningState()) {
       startCb();
@@ -146,6 +133,12 @@ export function setupEventListeners(
     startBtn.classList.remove("opacity-50", "cursor-not-allowed");
     stopBtn.classList.add("opacity-50", "cursor-not-allowed");
   });
+
+  // Ensure input elements are initialized before adding listeners
+  if (!tickDurationInput /* add checks for other inputs if necessary */) {
+    // console.warn("setupEventListeners called before input UI elements are initialized.");
+    return;
+  }
 
   tickDurationInput.addEventListener("input", (e) => {
     const value = parseInt(e.target.value);
@@ -207,6 +200,55 @@ export function setupEventListeners(
 }
 
 export function initUI() {
+  // Assign DOM elements here, safely after DOMContentLoaded
+  timeElapsedEl = document.getElementById("time-elapsed");
+  totalCreaturesEl = document.getElementById("total-creatures");
+  foodCountEl = document.getElementById("food-count");
+  rabbitCountEl = document.getElementById("rabbit-count");
+  rabbitSpeedEl = document.getElementById("rabbit-speed");
+  rabbitSenseEl = document.getElementById("rabbit-sense");
+  sheepCountEl = document.getElementById("sheep-count");
+  sheepSpeedEl = document.getElementById("sheep-speed");
+  sheepSenseEl = document.getElementById("sheep-sense");
+  foxCountEl = document.getElementById("fox-count");
+  foxSpeedEl = document.getElementById("fox-speed");
+  foxSenseEl = document.getElementById("fox-sense");
+  birdCountEl = document.getElementById("bird-count");
+  birdSpeedEl = document.getElementById("bird-speed");
+  birdSenseEl = document.getElementById("bird-sense");
+
+  tickDurationInput = document.getElementById("tick-duration");
+  foodRegenRateInput = document.getElementById("food-regen-rate");
+  mutationRateInput = document.getElementById("mutation-rate");
+  rabbitStartCountInput = document.getElementById("rabbit-start-count");
+  sheepStartCountInput = document.getElementById("sheep-start-count");
+  foxStartCountInput = document.getElementById("fox-start-count");
+  birdStartCountInput = document.getElementById("bird-start-count");
+  toggleVisionConesInput = document.getElementById("toggle-vision-cones");
+  waterBodiesCountInput = document.getElementById("water-bodies-count");
+
+  tickDurationValueEl = document.getElementById("tick-duration-value");
+  foodRegenValueEl = document.getElementById("food-regen-value");
+  mutationRateValueEl = document.getElementById("mutation-rate-value");
+  rabbitStartCountValueEl = document.getElementById("rabbit-start-count-value");
+  sheepStartCountValueEl = document.getElementById("sheep-start-count-value");
+  foxStartCountValueEl = document.getElementById("fox-start-count-value");
+  birdStartCountValueEl = document.getElementById("bird-start-count-value");
+  waterBodiesCountValueEl = document.getElementById("water-bodies-count-value");
+
+  startBtn = document.getElementById("start-btn");
+  stopBtn = document.getElementById("stop-btn");
+  resetBtn = document.getElementById("reset-btn");
+
+  // Basic check to see if critical elements were found
+  if (!timeElapsedEl || !tickDurationInput || !startBtn) {
+    console.error(
+      "UI_INIT_ERROR: One or more critical UI elements were not found in the DOM. UI might not function as expected."
+    );
+    return; // Stop further UI initialization if critical parts are missing
+  }
+
+  // Initialize UI values from config
   tickDurationInput.value = config.simulation.tickDuration;
   tickDurationValueEl.textContent = config.simulation.tickDuration;
   rabbitStartCountInput.value = config.rabbit.initialCount;
@@ -226,4 +268,13 @@ export function initUI() {
   stopBtn.classList.add("opacity-50", "cursor-not-allowed");
 }
 
-export const isVisionConesVisible = () => toggleVisionConesInput.checked;
+export const isVisionConesVisible = () => {
+  // Ensure toggleVisionConesInput is assigned before accessing checked property
+  if (toggleVisionConesInput) {
+    return toggleVisionConesInput.checked;
+  }
+  // Default to a sensible value (e.g., true or based on config) if element not found yet,
+  // though this function should ideally only be called after initUI.
+  // console.warn("isVisionConesVisible called before toggleVisionConesInput is initialized.");
+  return true; // Default to true if not initialized, or consider config.world.visionConesInitiallyVisible
+};

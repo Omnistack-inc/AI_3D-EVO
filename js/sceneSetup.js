@@ -2,25 +2,44 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { config } from "./config.js";
 
-export let scene, camera, renderer, controls;
+export let scene, camera, renderer, controls, container; // Make container a 'let' and initialize in init3D
 export const clock = new THREE.Clock();
-export const container = document.getElementById("simulation-container");
 
 export function init3D() {
+  container = document.getElementById("simulation-container"); // MOVED HERE
+  if (!container) {
+    console.error(
+      "THREE.JS SETUP: Simulation container element not found in DOM!"
+    );
+    return; // Stop if critical element is missing
+  }
+  if (container.clientWidth === 0 || container.clientHeight === 0) {
+    console.warn(
+      "THREE.JS SETUP: Simulation container has zero dimensions. Check CSS. Rendering might be incorrect or fail."
+    );
+    // Optionally, you could try requestAnimationFrame here to wait for layout,
+    // but if DOMContentLoaded has fired, it should ideally have dimensions.
+  }
+
   scene = new THREE.Scene();
   // Changed background to a sky blue color
   scene.background = new THREE.Color(0x87ceeb);
 
   camera = new THREE.PerspectiveCamera(
     75,
-    container.clientWidth / container.clientHeight,
+    container.clientWidth / container.clientHeight, // Uses container directly
     0.1,
     5000
   );
   camera.position.set(0, 150, 200);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setSize(container.clientWidth, container.clientHeight); // Uses container directly
+
+  // Clear previous canvas if any (e.g., on reset and re-init)
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
   container.appendChild(renderer.domElement);
 
   controls = new OrbitControls(camera, renderer.domElement);
