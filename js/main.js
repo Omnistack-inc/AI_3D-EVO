@@ -39,6 +39,8 @@ let elapsedSinceTick = 0;
 // --- Simulation Control Functions ---
 export function startSimulation() {
   simulationRunning = true;
+  elapsedSinceTick = 0; // Reset the tick accumulator
+  clock.getDelta(); // IMPORTANT: Call to consume the large delta accumulated during pause
 }
 export function stopSimulation() {
   simulationRunning = false;
