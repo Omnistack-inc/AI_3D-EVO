@@ -1,7 +1,7 @@
 import * as THREE from "three";
 // OrbitControls is imported in sceneSetup.js where it's used
 import { config } from "./config.js";
-import { random } from "./utils.js"; // distance2D might not be directly used in main.js anymore
+import { random, isPositionInWater } from "./utils.js"; // Added isPositionInWater
 import {
   init3D,
   scene,
@@ -31,7 +31,10 @@ export let simulationRunning = false;
 export let time = 0;
 export let creatures = [];
 export let food = [];
+export let waterBodiesData = []; // Array to store data for each water body
+let waterBodyMeshes = []; // Array to store meshes for each water body
 let elapsedSinceTick = 0;
+// let currentWaterMesh = null; // Replaced by waterBodyMeshes array
 
 // --- Simulation Control Functions ---
 export function startSimulation() {
@@ -49,11 +52,69 @@ export function resetSimulation() {
   if (startBtn) startBtn.classList.remove("opacity-50", "cursor-not-allowed");
   if (stopBtn) stopBtn.classList.add("opacity-50", "cursor-not-allowed");
 
+  // Remove old water meshes before setting up new ones
+  waterBodyMeshes.forEach((mesh) => {
+    scene.remove(mesh);
+    mesh.geometry.dispose();
+    mesh.material.dispose();
+  });
+  waterBodyMeshes = [];
+  waterBodiesData = []; // Clear the data array as well
+
   setup();
 }
 
 // --- Core Simulation Functions ---
 function setup() {
+  // Clear previous data just in case, though resetSimulation should handle it
+  waterBodyMeshes.forEach((mesh) => {
+    scene.remove(mesh);
+    mesh.geometry.dispose();
+    mesh.material.dispose();
+  });
+  waterBodyMeshes = [];
+  waterBodiesData = [];
+
+  // Randomize and create water bodies
+  if (config.water && config.water.enabled && config.water.numberOfBodies > 0) {
+    const worldHalfW = config.world.width / 2;
+    const worldHalfD = config.world.depth / 2;
+
+    for (let i = 0; i < config.water.numberOfBodies; i++) {
+      const waterWidth = random(config.water.minWidth, config.water.maxWidth);
+      const waterDepth = random(config.water.minDepth, config.water.maxDepth);
+      const waterX = random(
+        -worldHalfW + waterWidth / 2,
+        worldHalfW - waterWidth / 2
+      );
+      const waterZ = random(
+        -worldHalfD + waterDepth / 2,
+        worldHalfD - waterDepth / 2
+      );
+
+      const singleWaterBodyData = {
+        x: waterX,
+        z: waterZ,
+        width: waterWidth,
+        depth: waterDepth,
+      };
+      waterBodiesData.push(singleWaterBodyData);
+
+      const waterGeometry = new THREE.PlaneGeometry(waterWidth, waterDepth),
+        waterMaterial = new THREE.MeshStandardMaterial({
+          color: config.water.color,
+          transparent: true,
+          opacity: 0.75,
+          side: THREE.DoubleSide,
+        });
+      const waterMesh = new THREE.Mesh(waterGeometry, waterMaterial);
+      waterMesh.rotation.x = -Math.PI / 2;
+      waterMesh.position.set(waterX, 0.1, waterZ); // y slightly above ground
+      scene.add(waterMesh);
+      waterBodyMeshes.push(waterMesh);
+    }
+  }
+
   creatures.forEach((c) => c.dispose());
   food.forEach((f) => f.dispose());
 
@@ -67,45 +128,42 @@ function setup() {
   for (let i = 0; i < config.food.initialCount; i++) {
     spawnFood();
   }
+
+  function getValidSpawnPosition() {
+    let x, z;
+    do {
+      x = random(-halfW, halfW); // Corrected to use halfW for x as well
+      z = random(-halfD, halfD);
+    } while (isPositionInWater(x, z, waterBodiesData)); // Pass the array of water bodies
+    return { x, z };
+  }
+
   for (let i = 0; i < config.rabbit.initialCount; i++) {
+    const pos = getValidSpawnPosition();
     creatures.push(
-      new Rabbit(
-        random(-halfW, halfD),
-        0,
-        random(-halfW, halfD),
-        config.rabbit.initialEnergy,
-        visionConesOn
-      )
+      new Rabbit(pos.x, 0, pos.z, config.rabbit.initialEnergy, visionConesOn)
     );
   }
   for (let i = 0; i < config.sheep.initialCount; i++) {
+    const pos = getValidSpawnPosition();
     creatures.push(
-      new Sheep(
-        random(-halfW, halfD),
-        0,
-        random(-halfW, halfD),
-        config.sheep.initialEnergy,
-        visionConesOn
-      )
+      new Sheep(pos.x, 0, pos.z, config.sheep.initialEnergy, visionConesOn)
     );
   }
   for (let i = 0; i < config.fox.initialCount; i++) {
+    const pos = getValidSpawnPosition();
     creatures.push(
-      new Fox(
-        random(-halfW, halfD),
-        0,
-        random(-halfW, halfD),
-        config.fox.initialEnergy,
-        visionConesOn
-      )
+      new Fox(pos.x, 0, pos.z, config.fox.initialEnergy, visionConesOn)
     );
   }
   for (let i = 0; i < config.bird.initialCount; i++) {
+    // Birds can spawn over water as they fly, so no check needed here for initial spawn
+    // Their movement logic already handles altitude.
     creatures.push(
       new Bird(
-        random(-halfW, halfD),
+        random(-halfW, halfW), // Corrected to use halfW for x
         config.bird.cruiseAltitude,
-        random(-halfW, halfD),
+        random(-halfD, halfD),
         config.bird.initialEnergy,
         visionConesOn
       )
@@ -117,7 +175,12 @@ function setup() {
 function spawnFood() {
   const halfW = config.world.width / 2,
     halfD = config.world.depth / 2;
-  food.push(new Food(random(-halfW, halfD), random(-halfW, halfD)));
+  let x, z;
+  do {
+    x = random(-halfW, halfW); // Corrected to use halfW for x
+    z = random(-halfD, halfD);
+  } while (isPositionInWater(x, z, waterBodiesData)); // Pass the array of water bodies
+  food.push(new Food(x, z));
 }
 
 function animate() {

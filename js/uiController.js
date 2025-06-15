@@ -27,6 +27,7 @@ const sheepStartCountInput = document.getElementById("sheep-start-count");
 const foxStartCountInput = document.getElementById("fox-start-count");
 const birdStartCountInput = document.getElementById("bird-start-count");
 const toggleVisionConesInput = document.getElementById("toggle-vision-cones");
+const waterBodiesCountInput = document.getElementById("water-bodies-count"); // New UI element
 
 const tickDurationValueEl = document.getElementById("tick-duration-value");
 const foodRegenValueEl = document.getElementById("food-regen-value");
@@ -39,6 +40,9 @@ const sheepStartCountValueEl = document.getElementById(
 );
 const foxStartCountValueEl = document.getElementById("fox-start-count-value");
 const birdStartCountValueEl = document.getElementById("bird-start-count-value");
+const waterBodiesCountValueEl = document.getElementById(
+  "water-bodies-count-value"
+); // New UI element
 
 const startBtn = document.getElementById("start-btn");
 const stopBtn = document.getElementById("stop-btn");
@@ -177,6 +181,12 @@ export function setupEventListeners(
     config.bird.initialCount = value;
     birdStartCountValueEl.textContent = value;
   });
+  waterBodiesCountInput.addEventListener("input", (e) => {
+    // New event listener
+    const value = parseInt(e.target.value);
+    config.water.numberOfBodies = value;
+    waterBodiesCountValueEl.textContent = value;
+  });
   foodRegenRateInput.addEventListener("input", (e) => {
     const value = parseInt(e.target.value);
     config.food.regenRate = value;
@@ -207,6 +217,8 @@ export function initUI() {
   foxStartCountValueEl.textContent = config.fox.initialCount;
   birdStartCountInput.value = config.bird.initialCount;
   birdStartCountValueEl.textContent = config.bird.initialCount;
+  waterBodiesCountInput.value = config.water.numberOfBodies; // Initialize new slider
+  waterBodiesCountValueEl.textContent = config.water.numberOfBodies; // Initialize new slider display
   foodRegenRateInput.value = config.food.regenRate;
   foodRegenValueEl.textContent = config.food.regenRate;
   mutationRateInput.value = config.mutation.rate;

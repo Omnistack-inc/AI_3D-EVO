@@ -14,7 +14,7 @@ export function init3D() {
     75,
     container.clientWidth / container.clientHeight,
     0.1,
-    1000
+    5000
   );
   camera.position.set(0, 150, 200);
 
@@ -45,4 +45,6 @@ export function init3D() {
 
   const grid = new THREE.GridHelper(config.world.width, 20, 0x4a5568, 0x4a5568);
   scene.add(grid);
+
+  // Water body creation is now handled in main.js's setup() for randomization per simulation run
 }

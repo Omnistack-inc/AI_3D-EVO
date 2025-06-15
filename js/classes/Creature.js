@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { scene } from "../sceneSetup.js";
-import { random } from "../utils.js";
+import { random, isPositionInWater } from "../utils.js";
 import { config } from "../config.js";
+import { waterBodiesData } from "../main.js"; // Import waterBodiesData
 
 export class Creature {
   constructor(x, y, z, energy, speciesConfig, model, visionConesVisible) {
@@ -54,18 +55,59 @@ export class Creature {
       this.vx /= mag;
       this.vz /= mag;
     }
-    this.x += this.vx * this.speed;
-    this.z += this.vz * this.speed;
+
+    let nextX = this.x + this.vx * this.speed;
+    let nextZ = this.z + this.vz * this.speed;
+
     const halfWidth = config.world.width / 2;
     const halfDepth = config.world.depth / 2;
-    if (this.x < -halfWidth || this.x > halfWidth) {
+
+    // Boundary collision (existing logic)
+    if (nextX < -halfWidth || nextX > halfWidth) {
       this.vx *= -1;
-      this.x = Math.max(-halfWidth, Math.min(this.x, halfWidth));
+      nextX = Math.max(-halfWidth, Math.min(nextX, halfWidth));
     }
-    if (this.z < -halfDepth || this.z > halfDepth) {
+    if (nextZ < -halfDepth || nextZ > halfDepth) {
       this.vz *= -1;
-      this.z = Math.max(-halfDepth, Math.min(this.z, halfDepth));
+      nextZ = Math.max(-halfDepth, Math.min(nextZ, halfDepth));
     }
+
+    // Water collision detection - updated to use waterBodiesData array
+    if (config.water && config.water.enabled && waterBodiesData.length > 0) {
+      for (const waterBody of waterBodiesData) {
+        const waterHalfWidth = waterBody.width / 2;
+        const waterHalfDepth = waterBody.depth / 2;
+        const waterMinX = waterBody.x - waterHalfWidth;
+        const waterMaxX = waterBody.x + waterHalfWidth;
+        const waterMinZ = waterBody.z - waterHalfDepth;
+        const waterMaxZ = waterBody.z + waterHalfDepth;
+
+        if (
+          nextX > waterMinX &&
+          nextX < waterMaxX &&
+          nextZ > waterMinZ &&
+          nextZ < waterMaxZ
+        ) {
+          // Creature is trying to move into this water body.
+          this.vx *= -1;
+          this.vz *= -1;
+          // Attempt to place the creature just outside the water boundary it was about to enter
+          if (this.x <= waterMinX && nextX > waterMinX)
+            nextX = waterMinX - this.size / 2;
+          else if (this.x >= waterMaxX && nextX < waterMaxX)
+            nextX = waterMaxX + this.size / 2;
+          if (this.z <= waterMinZ && nextZ > waterMinZ)
+            nextZ = waterMinZ - this.size / 2;
+          else if (this.z >= waterMaxZ && nextZ < waterMaxZ)
+            nextZ = waterMaxZ + this.size / 2;
+          break; // Collision detected with one water body, no need to check others
+        }
+      }
+    }
+
+    this.x = nextX;
+    this.z = nextZ;
+
     this.mesh.position.set(this.x, this.y, this.z);
     this.mesh.lookAt(
       new THREE.Vector3(this.x + this.vx, this.y + this.vy, this.z + this.vz)
@@ -91,15 +133,65 @@ export class Creature {
     // Added visionConesVisible parameter
     if (this.energy >= this.config.reproduceEnergy) {
       this.energy /= 2;
-      // Pass visionConesVisible to the offspring's constructor
+
+      let offspringX = this.x;
+      let offspringZ = this.z;
+      let offspringY = this.y; // Usually 0 for ground creatures, altitude for birds
+
+      // For ground creatures, ensure offspring doesn't spawn in water.
+      // Check against all water bodies.
+      if (
+        this.type !== "bird" &&
+        isPositionInWater(offspringX, offspringZ, waterBodiesData)
+      ) {
+        // If parent is at the edge and offspring would be in water, try to find a nearby valid spot.
+        // This is a simplified approach. A more robust solution might involve several attempts or a different strategy.
+        // For now, we'll try to nudge the offspring slightly.
+        // This logic might need refinement if parents can get extremely close to water edges
+        // or if multiple water bodies are very close to each other.
+
+        // Attempt to move offspring away from the water body it's in.
+        // This is a placeholder for more sophisticated logic.
+        // A simple strategy: try small offsets in 8 directions.
+        const offsets = [
+          { dx: 0, dz: this.size },
+          { dx: 0, dz: -this.size },
+          { dx: this.size, dz: 0 },
+          { dx: -this.size, dz: 0 },
+          { dx: this.size, dz: this.size },
+          { dx: this.size, dz: -this.size },
+          { dx: -this.size, dz: this.size },
+          { dx: -this.size, dz: -this.size },
+        ];
+
+        let foundValidSpawn = false;
+        for (const offset of offsets) {
+          const newX = offspringX + offset.dx;
+          const newZ = offspringZ + offset.dz;
+          if (!isPositionInWater(newX, newZ, waterBodiesData)) {
+            offspringX = newX;
+            offspringZ = newZ;
+            foundValidSpawn = true;
+            break;
+          }
+        }
+
+        if (!foundValidSpawn) {
+          // Fallback: if no simple nudge works, don't reproduce this tick to avoid invalid spawn.
+          // Or, could place randomly, but that might be too far from parent.
+          // console.warn(`Could not find valid spawn for offspring of ${this.type} near water. Reproduction skipped.`);
+          this.energy *= 2; // Refund energy
+          return null;
+        }
+      }
+
       const offspring = new this.constructor(
-        this.x,
-        this.y,
-        this.z,
+        offspringX,
+        offspringY, // Use parent's y for birds, 0 for others typically
+        offspringZ,
         this.energy,
-        this.config,
-        this.bodyModel.clone(),
-        visionConesVisible
+        // this.config, // This was incorrect, should use the global species config
+        visionConesVisible // Pass visionConesVisible
       );
       if (Math.random() < config.mutation.rate) {
         offspring.speed *=

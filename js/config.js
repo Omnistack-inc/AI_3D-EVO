@@ -1,6 +1,17 @@
 export const config = {
-  simulation: { tickDuration: 33 }, // Target time in ms for each simulation tick.
+  simulation: { tickDuration: 75 }, // Target time in ms for each simulation tick.
   world: { width: 800, depth: 800 }, // Size of the simulation area.
+  water: {
+    enabled: true,
+    numberOfBodies: 1, // New parameter for the number of water bodies
+    // x, z, width, depth will be randomized for each body.
+    // These are now general properties for water bodies, not for a single one.
+    minWidth: 50, // Minimum width for any randomized water body
+    maxWidth: 250, // Maximum width for any randomized water body
+    minDepth: 50, // Minimum depth for any randomized water body
+    maxDepth: 250, // Maximum depth for any randomized water body
+    color: 0x4682b4, // SteelBlue color for water
+  },
   food: { initialCount: 150, energy: 25, regenRate: 20 },
   rabbit: {
     initialCount: 25,
