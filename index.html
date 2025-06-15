@@ -74,12 +74,7 @@
         <!-- Right Panel: Parameters (Overlay) -->
         <div id="parameters-panel" class="absolute top-0 right-0 h-full w-64 lg:w-72 bg-transparent p-4 overflow-y-auto space-y-3 z-10 pointer-events-none">
             <div class="pointer-events-auto">
-                <!-- Simulation state controls (Start, Stop, Reset) -->
-                <div class="flex space-x-2 mb-4 justify-center">
-                    <button id="start-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-md text-sm transition duration-300 ease-in-out transform hover:scale-105">Start</button>
-                    <button id="stop-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-md text-sm transition duration-300 ease-in-out transform hover:scale-105 opacity-50 cursor-not-allowed">Stop</button>
-                    <button id="reset-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-md text-sm transition duration-300 ease-in-out transform hover:scale-105">Reset</button>
-                </div>
+                <!-- Simulation state controls (Start, Stop, Reset) - MOVED FROM HERE -->
                 <h2 class="text-lg font-semibold border-b border-gray-700 pb-2 text-gray-300">Parameters</h2>
                 <div class="space-y-3 text-sm">
                      <div>
@@ -120,6 +115,12 @@
                             <span class="ml-2 text-gray-300">Show Vision Cones</span>
                         </label>
                     </div>
+                </div>
+                <!-- Simulation state controls (Start, Stop, Reset) - MOVED TO HERE -->
+                <div class="flex space-x-2 mt-4 justify-center">
+                    <button id="start-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-md text-sm transition duration-300 ease-in-out transform hover:scale-105">Start</button>
+                    <button id="stop-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-md text-sm transition duration-300 ease-in-out transform hover:scale-105 opacity-50 cursor-not-allowed">Stop</button>
+                    <button id="reset-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-3 rounded-md text-sm transition duration-300 ease-in-out transform hover:scale-105">Reset</button>
                 </div>
             </div>
         </div>
