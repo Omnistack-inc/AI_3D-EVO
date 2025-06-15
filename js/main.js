@@ -1,7 +1,12 @@
 import * as THREE from "three";
 // OrbitControls is imported in sceneSetup.js where it's used
 import { config } from "./config.js";
-import { random, isPositionInWater } from "./utils.js"; // Added isPositionInWater
+import {
+  random,
+  isPositionInWater,
+  areWaterBodiesOverlapping,
+  mergeWaterBodies,
+} from "./utils.js"; // Added new water body functions
 import {
   init3D,
   scene,
@@ -82,6 +87,9 @@ function setup() {
     const worldHalfW = config.world.width / 2;
     const worldHalfD = config.world.depth / 2;
 
+    // First generate all water body data without creating meshes
+    let tempWaterBodies = [];
+
     for (let i = 0; i < config.water.numberOfBodies; i++) {
       const waterWidth = random(config.water.minWidth, config.water.maxWidth);
       const waterDepth = random(config.water.minDepth, config.water.maxDepth);
@@ -100,9 +108,46 @@ function setup() {
         width: waterWidth,
         depth: waterDepth,
       };
-      waterBodiesData.push(singleWaterBodyData);
+      tempWaterBodies.push(singleWaterBodyData);
+    }
 
-      const waterGeometry = new THREE.PlaneGeometry(waterWidth, waterDepth),
+    // Merge overlapping water bodies - continue until no more merges are possible
+    let mergeOccurred;
+    do {
+      mergeOccurred = false;
+
+      // Check each pair of water bodies for overlap
+      for (let i = 0; i < tempWaterBodies.length; i++) {
+        for (let j = i + 1; j < tempWaterBodies.length; j++) {
+          if (
+            areWaterBodiesOverlapping(tempWaterBodies[i], tempWaterBodies[j])
+          ) {
+            // Merge the two water bodies
+            const mergedBody = mergeWaterBodies(
+              tempWaterBodies[i],
+              tempWaterBodies[j]
+            );
+
+            // Replace the first body with the merged one and remove the second body
+            tempWaterBodies[i] = mergedBody;
+            tempWaterBodies.splice(j, 1);
+
+            mergeOccurred = true;
+            break; // Exit the inner loop since we've modified the array
+          }
+        }
+        if (mergeOccurred) break; // Exit the outer loop too
+      }
+    } while (mergeOccurred);
+
+    // Now create meshes for our merged water bodies
+    for (const waterBody of tempWaterBodies) {
+      waterBodiesData.push(waterBody);
+
+      const waterGeometry = new THREE.PlaneGeometry(
+          waterBody.width,
+          waterBody.depth
+        ),
         waterMaterial = new THREE.MeshStandardMaterial({
           color: config.water.color,
           transparent: true,
@@ -111,9 +156,25 @@ function setup() {
         });
       const waterMesh = new THREE.Mesh(waterGeometry, waterMaterial);
       waterMesh.rotation.x = -Math.PI / 2;
-      waterMesh.position.set(waterX, 1, waterZ); // y slightly above ground - increased to 0.2
+      waterMesh.position.set(waterBody.x, 1, waterBody.z); // y slightly above ground - increased to 0.2
       scene.add(waterMesh);
       waterBodyMeshes.push(waterMesh);
+    }
+
+    // Merge overlapping water bodies
+    for (let i = 0; i < waterBodiesData.length; i++) {
+      for (let j = i + 1; j < waterBodiesData.length; j++) {
+        if (areWaterBodiesOverlapping(waterBodiesData[i], waterBodiesData[j])) {
+          mergeWaterBodies(waterBodiesData[i], waterBodiesData[j]);
+          // Remove the merged body from the scene
+          const meshToRemove = waterBodyMeshes[j];
+          scene.remove(meshToRemove);
+          meshToRemove.geometry.dispose();
+          meshToRemove.material.dispose();
+          waterBodyMeshes.splice(j, 1);
+          j--; // Adjust index after removal
+        }
+      }
     }
   }
 
