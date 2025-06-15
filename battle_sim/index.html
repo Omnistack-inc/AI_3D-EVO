@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Battle Simulation</title> <!-- Changed title -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <h1>AI Battle Simulation</h1>
+    <div id="scene-container"></div>
+
+    <div id="ui-container">
+        <div class="health-bar-container" id="player-health-container"> <!-- ID can remain, or change to gladiator1-health-container -->
+            <span>Gladiator 1 Health</span> <!-- Changed label -->
+            <div class="health-bar">
+                <div id="player-health-bar" class="health-bar-fill"></div> <!-- ID can remain, or change to gladiator1-health-bar -->
+            </div>
+        </div>
+        <div class="health-bar-container" id="ai-health-container"> <!-- ID can remain, or change to gladiator2-health-container -->
+            <span>Gladiator 2 Health</span> <!-- Changed label -->
+            <div class="health-bar">
+                <div id="ai-health-bar" class="health-bar-fill"></div> <!-- ID can remain, or change to gladiator2-health-bar -->
+            </div>
+        </div>
+        <div id="game-over-message" style="display: none;"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
