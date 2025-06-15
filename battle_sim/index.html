@@ -11,6 +11,12 @@
     <div id="scene-container"></div>
 
     <div id="ui-container">
+        <div id="simulation-controls">
+            <button id="startButton">Start</button>
+            <button id="pauseButton">Pause</button>
+            <button id="resumeButton">Resume</button>
+            <button id="resetButton">Reset</button>
+        </div>
         <div class="health-bar-container" id="player-health-container"> <!-- ID can remain, or change to gladiator1-health-container -->
             <span>Gladiator 1 Health</span> <!-- Changed label -->
             <div class="health-bar">
@@ -27,6 +33,8 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
