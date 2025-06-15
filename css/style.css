@@ -11,9 +11,9 @@ canvas {
     display: block; /* Removes any default spacing below the canvas element */
 }
 .control-panel {
-    background-color: #2d3748; /* Tailwind bg-gray-800 */
+    /* background-color: #2d3748; */ /* Tailwind bg-gray-800 - Commented out for transparency */
     border-radius: 0.5rem;
 }
 .stat-card {
-        background-color: #4a5568; /* Tailwind bg-gray-700 */
+        background-color: #4a5568; /* Tailwind bg-gray-700 - Kept solid */
 }
