@@ -24,6 +24,8 @@ let rabbitStartCountValueEl,
 let waterBodiesCountValueEl;
 
 let startBtn, stopBtn, resetBtn;
+let toggleParametersBtn, parametersContentEl; // New elements for parameters toggle
+let toggleSpeciesDataBtn, speciesDataContentEl; // New elements for species data toggle
 
 // Population Chart
 let populationChart = null;
@@ -211,6 +213,37 @@ export function setupEventListeners(
     resetPopulationChart(); // Reset chart on simulation reset
   });
 
+  // Toggle Parameters Panel
+  if (toggleParametersBtn && parametersContentEl) {
+    toggleParametersBtn.addEventListener("click", () => {
+      const isHidden = parametersContentEl.classList.toggle("hidden");
+      // Optionally, change button icon/text based on visibility state
+      toggleParametersBtn.title = isHidden
+        ? "Show Parameters Panel"
+        : "Hide Parameters Panel";
+      // You might want to adjust the icon here as well if you have different SVGs for open/closed states
+    });
+  } else {
+    console.warn("Toggle parameters button or content element not found.");
+  }
+
+  // Toggle Species Data Panel
+  if (toggleSpeciesDataBtn && speciesDataContentEl) {
+    toggleSpeciesDataBtn.addEventListener("click", () => {
+      const isHidden = speciesDataContentEl.classList.toggle("hidden");
+      toggleSpeciesDataBtn.title = isHidden
+        ? "Show Species Data"
+        : "Hide Species Data";
+      // Rotate arrow icon
+      const arrowIcon = toggleSpeciesDataBtn.querySelector("svg");
+      if (arrowIcon) {
+        arrowIcon.classList.toggle("rotate-180");
+      }
+    });
+  } else {
+    console.warn("Toggle species data button or content element not found.");
+  }
+
   // Ensure input elements are initialized before adding listeners
   if (!tickDurationInput /* add checks for other inputs if necessary */) {
     // console.warn("setupEventListeners called before input UI elements are initialized.");
@@ -293,6 +326,14 @@ export function initUI() {
   birdCountEl = document.getElementById("bird-count");
   birdSpeedEl = document.getElementById("bird-speed");
   birdSenseEl = document.getElementById("bird-sense");
+
+  // New elements for parameters toggle
+  toggleParametersBtn = document.getElementById("toggle-parameters-btn");
+  parametersContentEl = document.getElementById("parameters-content");
+
+  // New elements for species data toggle
+  toggleSpeciesDataBtn = document.getElementById("toggle-species-data-btn");
+  speciesDataContentEl = document.getElementById("species-data-content");
 
   tickDurationInput = document.getElementById("tick-duration");
   foodRegenRateInput = document.getElementById("food-regen-rate");
