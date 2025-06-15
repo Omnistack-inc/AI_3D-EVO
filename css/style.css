@@ -1,0 +1,19 @@
+/* Basic styling for the body and layout components */
+body {
+    font-family: 'Inter', sans-serif;
+    overflow: hidden; /* Prevents scrollbars from appearing on the main page */
+}
+#simulation-container {
+    width: 100%;
+    height: 100%;
+}
+canvas {
+    display: block; /* Removes any default spacing below the canvas element */
+}
+.control-panel {
+    background-color: #2d3748; /* Tailwind bg-gray-800 */
+    border-radius: 0.5rem;
+}
+.stat-card {
+        background-color: #4a5568; /* Tailwind bg-gray-700 */
+}
