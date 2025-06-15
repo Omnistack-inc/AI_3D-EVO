@@ -25,6 +25,73 @@ let waterBodiesCountValueEl;
 
 let startBtn, stopBtn, resetBtn;
 
+// Population Chart
+let populationChart = null;
+const MAX_DATA_POINTS = 50; // Max data points to show on the chart
+const populationData = {
+  labels: [], // Time ticks
+  datasets: [
+    {
+      label: "Rabbits",
+      data: [],
+      borderColor: "#A0A0A0",
+      tension: 0.1,
+      hidden: false,
+      pointRadius: 0, // Hide points
+    },
+    {
+      label: "Sheep",
+      data: [],
+      borderColor: "#E0E0E0",
+      tension: 0.1,
+      hidden: false,
+      pointRadius: 0, // Hide points
+    },
+    {
+      label: "Foxes",
+      data: [],
+      borderColor: "#D46A34",
+      tension: 0.1,
+      hidden: false,
+      pointRadius: 0, // Hide points
+    },
+    {
+      label: "Birds",
+      data: [],
+      borderColor: "#57C4E5",
+      tension: 0.1,
+      hidden: false,
+      pointRadius: 0, // Hide points
+    },
+  ],
+};
+
+function updatePopulationChart(time, rabbitCount, sheepCount, foxCount, birdCount) {
+  if (!populationChart) return;
+
+  populationData.labels.push(time);
+  populationData.datasets[0].data.push(rabbitCount);
+  populationData.datasets[1].data.push(sheepCount);
+  populationData.datasets[2].data.push(foxCount);
+  populationData.datasets[3].data.push(birdCount);
+
+  // Limit the number of data points
+  if (populationData.labels.length > MAX_DATA_POINTS) {
+    populationData.labels.shift();
+    populationData.datasets.forEach((dataset) => dataset.data.shift());
+  }
+
+  populationChart.update();
+}
+
+export function resetPopulationChart() {
+  if (populationChart) {
+    populationData.labels = [];
+    populationData.datasets.forEach((dataset) => (dataset.data = []));
+    populationChart.update();
+  }
+}
+
 export function updateStats(time, creatures, food) {
   // Ensure elements are initialized before trying to update them
   if (!timeElapsedEl) {
@@ -96,6 +163,9 @@ export function updateStats(time, creatures, food) {
     birdCount > 0 ? (totalBirdSpeed / birdCount).toFixed(2) : "N/A";
   birdSenseEl.textContent =
     birdCount > 0 ? (totalBirdSense / birdCount).toFixed(2) : "N/A";
+
+  // Update the population chart
+  updatePopulationChart(time, rabbitCount, sheepCount, foxCount, birdCount);
 }
 
 export function setupEventListeners(
@@ -132,6 +202,7 @@ export function setupEventListeners(
     startBtn.textContent = "Start";
     startBtn.classList.remove("opacity-50", "cursor-not-allowed");
     stopBtn.classList.add("opacity-50", "cursor-not-allowed");
+    resetPopulationChart(); // Reset chart on simulation reset
   });
 
   // Ensure input elements are initialized before adding listeners
@@ -239,6 +310,71 @@ export function initUI() {
   startBtn = document.getElementById("start-btn");
   stopBtn = document.getElementById("stop-btn");
   resetBtn = document.getElementById("reset-btn");
+
+  // Initialize Population Chart
+  const ctx = document.getElementById("populationChart");
+  if (ctx) {
+    populationChart = new Chart(ctx, {
+      type: "line",
+      data: populationData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        elements: { // Add this to hide points globally for new datasets if any
+            point: {
+                radius: 0
+            }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: "#cbd5e1", // Light gray for x-axis ticks (Tailwind slate-300)
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 10,
+            },
+            grid: {
+              color: "#4b5563", // Darker gray for x-axis grid lines (Tailwind gray-600)
+            },
+            title: {
+              display: true,
+              text: "Time (ticks)",
+              color: "#cbd5e1",
+            },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: "#cbd5e1", // Light gray for y-axis ticks
+              stepSize: 10, // Adjust stepSize as needed
+            },
+            grid: {
+              color: "#4b5563", // Darker gray for y-axis grid lines
+            },
+            title: {
+              display: true,
+              text: "Population Count",
+              color: "#cbd5e1",
+            },
+          },
+        },
+        plugins: {
+          legend: {
+            position: "top",
+            labels: {
+              color: "#e5e7eb", // Lighter gray for legend text (Tailwind gray-200)
+              usePointStyle: true,
+            },
+          },
+        },
+        animation: {
+          duration: 200, // Faster animation
+        },
+      },
+    });
+  } else {
+    console.error("Population chart canvas element not found!");
+  }
 
   // Basic check to see if critical elements were found
   if (!timeElapsedEl || !tickDurationInput || !startBtn) {
