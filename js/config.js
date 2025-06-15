@@ -4,12 +4,15 @@ export const config = {
   water: {
     enabled: true,
     numberOfBodies: 5, // Default number of water bodies set to 5
+    shapeTypes: ["rectangle", "circle"], // Available shapes for water bodies
     // x, z, width, depth will be randomized for each body.
     // These are now general properties for water bodies, not for a single one.
-    minWidth: 50, // Minimum width for any randomized water body
-    maxWidth: 250, // Maximum width for any randomized water body
-    minDepth: 50, // Minimum depth for any randomized water body
-    maxDepth: 250, // Maximum depth for any randomized water body
+    minWidth: 50, // Minimum width for any randomized rectangular water body
+    maxWidth: 250, // Maximum width for any randomized rectangular water body
+    minDepth: 50, // Minimum depth for any randomized rectangular water body
+    maxDepth: 250, // Maximum depth for any randomized rectangular water body
+    minCircleRadius: 30, // Minimum radius for circular water bodies
+    maxCircleRadius: 120, // Maximum radius for circular water bodies
     color: 0x4682b4, // SteelBlue color for water
   },
   food: { initialCount: 150, energy: 25, regenRate: 20 },

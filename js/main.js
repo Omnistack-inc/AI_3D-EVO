@@ -91,23 +91,57 @@ function setup() {
     let tempWaterBodies = [];
 
     for (let i = 0; i < config.water.numberOfBodies; i++) {
-      const waterWidth = random(config.water.minWidth, config.water.maxWidth);
-      const waterDepth = random(config.water.minDepth, config.water.maxDepth);
-      const waterX = random(
-        -worldHalfW + waterWidth / 2,
-        worldHalfW - waterWidth / 2
-      );
-      const waterZ = random(
-        -worldHalfD + waterDepth / 2,
-        worldHalfD - waterDepth / 2
-      );
+      const shapeType =
+        config.water.shapeTypes[
+          Math.floor(Math.random() * config.water.shapeTypes.length)
+        ];
+      let waterWidth, waterDepth, waterRadius, singleWaterBodyData;
 
-      const singleWaterBodyData = {
-        x: waterX,
-        z: waterZ,
-        width: waterWidth,
-        depth: waterDepth,
-      };
+      if (shapeType === "rectangle") {
+        waterWidth = random(config.water.minWidth, config.water.maxWidth);
+        waterDepth = random(config.water.minDepth, config.water.maxDepth);
+        const waterX = random(
+          -worldHalfW + waterWidth / 2,
+          worldHalfW - waterWidth / 2
+        );
+        const waterZ = random(
+          -worldHalfD + waterDepth / 2,
+          worldHalfD - waterDepth / 2
+        );
+        singleWaterBodyData = {
+          shapeType: "rectangle",
+          x: waterX,
+          z: waterZ,
+          width: waterWidth,
+          depth: waterDepth,
+        };
+      } else {
+        // 'circle'
+        waterRadius = random(
+          config.water.minCircleRadius,
+          config.water.maxCircleRadius
+        );
+        // For circles, width and depth are diameter for bounding box purposes
+        waterWidth = waterRadius * 2;
+        waterDepth = waterRadius * 2;
+        const waterX = random(
+          -worldHalfW + waterRadius, // Use radius for positioning
+          worldHalfW - waterRadius
+        );
+        const waterZ = random(
+          -worldHalfD + waterRadius, // Use radius for positioning
+          worldHalfD - waterRadius
+        );
+        singleWaterBodyData = {
+          shapeType: "circle",
+          x: waterX,
+          z: waterZ,
+          radius: waterRadius,
+          // Store width/depth as diameter for consistent AABB checks if needed by merging
+          width: waterWidth,
+          depth: waterDepth,
+        };
+      }
       tempWaterBodies.push(singleWaterBodyData);
     }
 
@@ -140,20 +174,41 @@ function setup() {
       }
     } while (mergeOccurred);
 
-    // Now create meshes for our merged water bodies
+    // Now create meshes for our merged (or original) water bodies
     for (const waterBody of tempWaterBodies) {
-      waterBodiesData.push(waterBody);
+      waterBodiesData.push(waterBody); // Add to the global data used by other functions
 
-      const waterGeometry = new THREE.PlaneGeometry(
+      let waterGeometry;
+      if (waterBody.shapeType === "rectangle") {
+        waterGeometry = new THREE.PlaneGeometry(
           waterBody.width,
           waterBody.depth
-        ),
-        waterMaterial = new THREE.MeshStandardMaterial({
-          color: config.water.color,
-          transparent: true,
-          opacity: 0.75,
-          side: THREE.DoubleSide,
-        });
+        );
+      } else {
+        // 'circle' - Note: merged bodies are always rectangular for now
+        // If a body was originally a circle and wasn't merged, create CircleGeometry
+        // If it was merged, it will have shapeType 'rectangle' from mergeWaterBodies (implicitly)
+        // or we ensure mergeWaterBodies explicitly sets shapeType to 'rectangle'.
+        // For simplicity, if it has a radius, assume it's a circle to be drawn.
+        // Merged bodies will rely on their width/depth and be treated as rectangles by default.
+        if (waterBody.radius && !waterBody.merged) {
+          // merged is a hypothetical flag if mergeWaterBodies sets it
+          waterGeometry = new THREE.CircleGeometry(waterBody.radius, 32); // 32 segments for a smooth circle
+        } else {
+          // It's a rectangle or a merged body (which is treated as a rectangle)
+          waterGeometry = new THREE.PlaneGeometry(
+            waterBody.width,
+            waterBody.depth
+          );
+        }
+      }
+
+      const waterMaterial = new THREE.MeshStandardMaterial({
+        color: config.water.color,
+        transparent: true,
+        opacity: 0.75,
+        side: THREE.DoubleSide,
+      });
       const waterMesh = new THREE.Mesh(waterGeometry, waterMaterial);
       waterMesh.rotation.x = -Math.PI / 2;
       waterMesh.position.set(waterBody.x, 1, waterBody.z); // y slightly above ground - increased to 0.2
