@@ -3,7 +3,7 @@ export const config = {
   world: { width: 800, depth: 800 }, // Size of the simulation area.
   water: {
     enabled: true,
-    numberOfBodies: 1, // New parameter for the number of water bodies
+    numberOfBodies: 5, // Default number of water bodies set to 5
     // x, z, width, depth will be randomized for each body.
     // These are now general properties for water bodies, not for a single one.
     minWidth: 50, // Minimum width for any randomized water body
