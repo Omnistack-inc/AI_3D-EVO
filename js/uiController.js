@@ -66,7 +66,13 @@ const populationData = {
   ],
 };
 
-function updatePopulationChart(time, rabbitCount, sheepCount, foxCount, birdCount) {
+function updatePopulationChart(
+  time,
+  rabbitCount,
+  sheepCount,
+  foxCount,
+  birdCount
+) {
   if (!populationChart) return;
 
   populationData.labels.push(time);
@@ -81,7 +87,7 @@ function updatePopulationChart(time, rabbitCount, sheepCount, foxCount, birdCoun
     populationData.datasets.forEach((dataset) => dataset.data.shift());
   }
 
-  populationChart.update();
+  populationChart.update("none"); // Update without animation to prevent flickering
 }
 
 export function resetPopulationChart() {
@@ -320,10 +326,11 @@ export function initUI() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        elements: { // Add this to hide points globally for new datasets if any
-            point: {
-                radius: 0
-            }
+        elements: {
+          // Add this to hide points globally for new datasets if any
+          point: {
+            radius: 0,
+          },
         },
         scales: {
           x: {
