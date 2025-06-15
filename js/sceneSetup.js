@@ -8,7 +8,8 @@ export const container = document.getElementById("simulation-container");
 
 export function init3D() {
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x1a202c);
+  // Changed background to a sky blue color
+  scene.background = new THREE.Color(0x87ceeb);
 
   camera = new THREE.PerspectiveCamera(
     75,
@@ -31,12 +32,21 @@ export function init3D() {
   directionalLight.position.set(50, 100, 75);
   scene.add(directionalLight);
 
+  // Load the grass texture
+  const textureLoader = new THREE.TextureLoader();
+  const grassTexture = textureLoader.load("textures/grass.png"); // Assuming grass.png is in a 'textures' folder
+  grassTexture.wrapS = THREE.RepeatWrapping;
+  grassTexture.wrapT = THREE.RepeatWrapping;
+  const textureRepeat = Math.max(config.world.width, config.world.depth) / 50; // Adjust 50 to control texture scale
+  grassTexture.repeat.set(textureRepeat, textureRepeat);
+
   const planeGeometry = new THREE.PlaneGeometry(
     config.world.width,
     config.world.depth
   );
+  // Apply the texture to the ground plane material
   const planeMaterial = new THREE.MeshStandardMaterial({
-    color: 0x2d3748,
+    map: grassTexture, // Use the loaded texture
     side: THREE.DoubleSide,
   });
   const groundPlane = new THREE.Mesh(planeGeometry, planeMaterial);

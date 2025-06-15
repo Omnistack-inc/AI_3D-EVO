@@ -194,7 +194,7 @@ function animate() {
       const ticksToRun = Math.floor(
         elapsedSinceTick / config.simulation.tickDuration
       );
-      const currentVisionConesVisible = isVisionConesVisible(); // Get vision cone state for this batch of ticks
+      const currentVisionConesVisible = isVisionConesVisible();
 
       for (let i = 0; i < ticksToRun; i++) {
         time++;
@@ -202,14 +202,13 @@ function animate() {
           spawnFood();
         }
 
-        let newOffspringList = [];
-        let consumedFoodIds = new Set();
-        let huntedCreatureIds = new Set();
+        const newOffspringList = [];
+        const consumedFoodIds = new Set();
+        const huntedCreatureIds = new Set();
 
-        // Update creatures and collect results
-        creatures.forEach((c) => {
+        for (let j = 0; j < creatures.length; j++) {
+          const c = creatures[j];
           if (c.energy > 0) {
-            // Process only living creatures
             const updateResult = c.update(
               food,
               creatures,
@@ -227,64 +226,52 @@ function animate() {
               }
             }
           }
-        });
+        }
 
-        // Add new offspring to the main list
-        creatures.push(...newOffspringList);
-
-        // Remove consumed food
         if (consumedFoodIds.size > 0) {
-          const foodToRemove = food.filter((f) => consumedFoodIds.has(f.id));
-          foodToRemove.forEach((f) => f.dispose());
-          food = food.filter((f) => !consumedFoodIds.has(f.id));
-        }
-
-        // Identify all creatures to be removed (hunted or died from low energy)
-        let allCreatureIdsToRemove = new Set(huntedCreatureIds);
-        creatures.forEach((c) => {
-          // If a creature was hunted, its energy might be set low by the predator, or it might have died anyway.
-          // Add to removal list if energy is zero, or if it was specifically hunted.
-          if (c.energy <= 0 && !allCreatureIdsToRemove.has(c.id)) {
-            allCreatureIdsToRemove.add(c.id);
+          const newFoodArray = [];
+          for (let j = 0; j < food.length; j++) {
+            if (consumedFoodIds.has(food[j].id)) {
+              food[j].dispose();
+            } else {
+              newFoodArray.push(food[j]);
+            }
           }
-        });
-
-        // Dispose and filter creatures
-        if (allCreatureIdsToRemove.size > 0) {
-          const creaturesToDisposeAndRemove = creatures.filter((c) =>
-            allCreatureIdsToRemove.has(c.id)
-          );
-          creaturesToDisposeAndRemove.forEach((c) => c.dispose());
-          creatures = creatures.filter(
-            (c) => !allCreatureIdsToRemove.has(c.id)
-          );
+          food = newFoodArray;
         }
+
+        const nextCreaturesArray = [];
+        for (let j = 0; j < creatures.length; j++) {
+          const c = creatures[j];
+          if (c.energy > 0 && !huntedCreatureIds.has(c.id)) {
+            nextCreaturesArray.push(c);
+          } else {
+            c.dispose();
+          }
+        }
+        creatures = nextCreaturesArray.concat(newOffspringList);
       }
       elapsedSinceTick %= config.simulation.tickDuration;
-      updateStats(time, creatures, food); // Pass state to updateStats
+      updateStats(time, creatures, food); // Correctly placed after ticks, before render
     }
   }
+
   if (renderer && scene && camera) {
-    renderer.render(scene, camera);
+    renderer.render(scene, camera); // Correctly placed to render every frame
   }
 }
 
 // --- Initialize ---
 document.addEventListener("DOMContentLoaded", () => {
   init3D();
-  initUI(); // Initializes UI elements and their default states
-  // Pass callbacks and getters to setupEventListeners
+  initUI();
   setupEventListeners(
     startSimulation,
     stopSimulation,
     resetSimulation,
-    () => simulationRunning, // Getter for simulationRunning state
-    () => creatures // Getter for creatures array
+    () => simulationRunning,
+    () => creatures
   );
-  setup(); // Initial population
+  setup();
   animate();
 });
-
-// Comments about further refactoring for Creature.reproduce and species update methods
-// to handle array modifications more cleanly are still relevant.
-// The current changes address the circular dependency and vision cone initialization.
